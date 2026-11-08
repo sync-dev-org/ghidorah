@@ -1,0 +1,23 @@
+site_name: ghidorah
+site_description: Windows の音声 device と network の音の流れをつなぐ tool
+docs_dir: docs
+repo_url: https://github.com/sync-dev-org/ghidorah
+edit_uri: ""
+strict: true
+
+theme:
+  name: material
+  language: ja
+
+nav:
+  - 概要: index.md
+  - install: install.md
+  - Python から使う: python.md
+
+plugins:
+  - search:
+      lang: ja
+
+markdown_extensions:
+  - fenced_code
+  - tables
