@@ -1,0 +1,561 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="color-scheme" content="dark">
+<meta name="theme-color" content="#0d0b0a">
+<meta name="description" content="Every channel, anywhere. ghidorah は、ブラウザで触れる本格的な software mixer。insert 付きの channel strip と bus を一通り持ち、network の音で別の PC の卓ともつながります。">
+<title>ghidorah</title>
+<link rel="icon" href="data:,">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=Dela+Gothic+One&family=JetBrains+Mono:wght@400;500&family=Zen+Kaku+Gothic+New:wght@400;500;700;900&display=swap">
+<style>
+/* Layout: a dark console room. Gold carries the sound and every quiet detail; red is kept for the few strong strokes: the main button, the heading underline and the numbered marks. The page sells three things only: a console you touch in a browser, a mixer with everything a console needs, and consoles linked over the network. Web fonts come from Google Fonts, and the system fonts follow them for a reader who cannot load them. */
+:root {
+  --ground: #0d0b0a;
+  --ground-2: #14110f;
+  --surface: #1a1613;
+  --ink: #f2ebe1;
+  --ink-2: #cfc5b8;
+  --sub: #9a8f83;
+  --rule: #2e2723;
+  --rule-2: #4a3f38;
+  --gold: #d4a649;
+  --gold-ink: #e2b85e;
+  --gold-soft: #d4a64926;
+  --red: #d21f16;
+  --red-ink: #ff5a48;
+  --on-gold: #1a1206;
+  --on-red: #fff6ec;
+  --shot-bg: #0b0c0e;
+  --shot-rule: #34302c;
+  --chrome: #1d1f23;
+  --chrome-rule: #2c2f34;
+  --meter: #3ccf7a;
+  --head-bg: #0d0b0aeb;
+  --code-bg: #070605;
+  --code-ink: #e9e1d5;
+  --code-sub: #8a7f73;
+  --code-key: #e2b85e;
+
+  --sans: "Zen Kaku Gothic New", "Hiragino Sans", "Hiragino Kaku Gothic ProN", "Yu Gothic UI", "Yu Gothic", YuGothic, Meiryo, "Noto Sans JP", "Noto Sans CJK JP", system-ui, sans-serif;
+  --display: "Dela Gothic One", var(--sans);
+  --label: "Barlow Condensed", "Roboto Condensed", "Arial Narrow", var(--sans);
+  --mono: "JetBrains Mono", ui-monospace, "Cascadia Mono", Consolas, Menlo, "Zen Kaku Gothic New", "Hiragino Sans", "Yu Gothic UI", Meiryo, "Noto Sans JP", "Noto Sans CJK JP", monospace;
+  --max: 1180px;
+  color-scheme: dark;
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; scroll-behavior: smooth; scroll-padding-top: calc(72px + env(safe-area-inset-top, 0px)); }
+body { margin: 0; min-width: 320px; background: var(--ground); color: var(--ink); font: 400 16px/1.9 var(--sans); -webkit-font-smoothing: antialiased; line-break: strict; overflow-wrap: break-word; font-feature-settings: "palt"; }
+body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-area-inset-top, 0px); z-index: 30; background: var(--ground); }
+h1, h2, h3, p, figure, dl, dd, ol, ul, pre { margin: 0; }
+ol, ul { padding: 0; list-style: none; }
+a { color: inherit; text-underline-offset: .28em; }
+a:focus-visible, button:focus-visible { outline: 2px solid var(--gold); outline-offset: 3px; border-radius: 4px; }
+code { font-family: var(--mono); font-size: .9em; font-variant-ligatures: none; }
+img { display: block; max-width: 100%; height: auto; }
+svg { display: block; }
+
+/* frame: the side gutter lives on .wrap only */
+.wrap { padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+.frame { max-width: var(--max); margin-inline: auto; padding-inline: clamp(0px, calc(5vw - 20px), 44px); }
+.skip { position: absolute; z-index: 40; top: calc(8px + env(safe-area-inset-top, 0px)); left: max(16px, env(safe-area-inset-left, 0px)); padding: 8px 14px; border-radius: 8px; background: var(--gold); color: var(--on-gold); font-size: 14px; font-weight: 700; text-decoration: none; transform: translateY(-300%); }
+.skip:focus { transform: none; }
+
+/* type */
+.label { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; color: var(--gold-ink); font: 600 14px/1.3 var(--label); letter-spacing: .16em; text-transform: uppercase; }
+.label .jp { font-family: var(--sans); font-weight: 700; font-size: 13px; letter-spacing: .04em; text-transform: none; }
+.label .jp::before { content: "·"; margin-right: 12px; color: var(--sub); }
+.led { flex: none; width: 9px; height: 9px; border-radius: 50%; background: var(--gold); box-shadow: 0 0 0 3px var(--gold-soft); }
+h1, h2 { font-family: var(--display); font-weight: 400; font-synthesis: none; letter-spacing: -.005em; text-wrap: balance; }
+h2 { margin-top: 18px; font-size: clamp(32px, 3.9vw, 52px); line-height: 1.08; }
+h3 { font-size: 18px; font-weight: 900; line-height: 1.6; word-break: auto-phrase; text-wrap: balance; }
+.h-ja { margin-top: 14px; color: var(--gold-ink); font-size: clamp(16px, 1.5vw, 20px); font-weight: 900; line-height: 1.65; word-break: auto-phrase; text-wrap: balance; }
+.lede { color: var(--ink-2); font-size: clamp(15px, 1.2vw, 17px); line-height: 2; max-width: 40em; word-break: auto-phrase; }
+.note { margin-top: 22px; max-width: 62em; color: var(--sub); font-size: 13px; line-height: 1.9; }
+.no { flex: none; display: inline-grid; place-items: center; width: 24px; height: 24px; border-radius: 50%; background: var(--red); color: var(--on-red); font: 700 14px/1 var(--label); }
+
+/* buttons */
+.actions { display: flex; flex-wrap: wrap; align-items: center; gap: 14px 24px; }
+.btn { display: inline-flex; align-items: center; gap: 12px; min-height: 50px; padding: 0 24px; border-radius: 999px; background: var(--red); color: var(--on-red); font-size: 15px; font-weight: 700; text-decoration: none; }
+.btn:hover { filter: brightness(1.08); }
+.link { display: inline-flex; align-items: center; gap: 8px; min-height: 44px; font-size: 15px; font-weight: 700; text-decoration: none; border-bottom: 1px solid currentColor; }
+.link:hover { color: var(--gold-ink); }
+.ext { display: inline-block; width: .8em; height: .8em; flex: none; }
+
+/* top bar */
+.topbar { position: sticky; top: env(safe-area-inset-top, 0px); z-index: 20; background: var(--head-bg); border-bottom: 1px solid var(--rule); box-shadow: inset 0 3px 0 var(--red); -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px); }
+.topbar .frame { display: flex; align-items: center; justify-content: space-between; gap: 20px; min-height: 62px; }
+.brand { display: inline-flex; align-items: center; gap: 10px; color: var(--ink); font: 700 25px/1 var(--label); letter-spacing: .01em; text-decoration: none; }
+.brand svg { width: 28px; height: 28px; }
+.nav { display: flex; align-items: center; gap: 2px 22px; font-size: 13px; }
+.nav a { padding-block: 10px; color: var(--ink-2); text-decoration: none; }
+.nav a:hover { color: var(--ink); }
+.nav .cta { padding: 6px 16px; border: 1px solid var(--rule-2); border-radius: 999px; color: var(--ink); }
+
+/* sections */
+.section { padding-block: clamp(72px, 9vw, 128px); }
+.band { background: var(--ground-2); }
+.sec-head { display: grid; grid-template-columns: minmax(0, 7fr) minmax(0, 5fr); align-items: end; gap: 22px 64px; margin-bottom: clamp(36px, 4.5vw, 60px); }
+.sec-head .lede { padding-bottom: 6px; }
+
+/* screenshots */
+.shot { position: relative; min-width: 0; border: 1px solid var(--shot-rule); border-radius: 14px; background: var(--shot-bg); overflow: hidden; box-shadow: 0 24px 60px -28px #000; }
+.shot img { width: 100%; }
+.cap { display: flex; gap: 12px; margin-top: 14px; color: var(--sub); font-size: 13px; line-height: 1.8; }
+.cap b { flex: none; color: var(--gold-ink); font: 600 14px/1.7 var(--label); letter-spacing: .1em; text-transform: uppercase; }
+.pair { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 28px 32px; align-items: start; }
+.pair > figure { min-width: 0; }
+
+/* hero: the console in a browser window */
+.hero { padding-block: clamp(44px, 6vw, 84px) clamp(64px, 8vw, 112px); overflow: hidden; }
+.hero-copy { display: grid; grid-template-columns: minmax(0, 6fr) minmax(0, 5fr); gap: 28px 64px; align-items: end; }
+.hero h1 { margin-top: 24px; font-size: clamp(44px, 5.6vw, 74px); line-height: 1.04; letter-spacing: -.01em; }
+.hero h1 .uw { text-decoration: underline wavy var(--red); text-decoration-thickness: .05em; text-underline-offset: .2em; text-decoration-skip-ink: none; }
+.h1-ja { margin-top: 24px; font-size: clamp(18px, 1.7vw, 23px); font-weight: 900; line-height: 1.7; word-break: auto-phrase; text-wrap: balance; }
+.hero .lede { font-size: clamp(15px, 1.25vw, 17px); }
+.hero .actions { margin-top: 26px; }
+.hero-shot { position: relative; margin-top: clamp(40px, 5vw, 64px); }
+.hero-shot::before { content: ""; position: absolute; inset: 8% 6% -4%; z-index: 0; background: radial-gradient(60% 55% at 50% 40%, #d4a64933, transparent 70%), radial-gradient(40% 40% at 85% 80%, #d21f1626, transparent 70%); filter: blur(30px); pointer-events: none; }
+.window { position: relative; z-index: 1; overflow: hidden; border: 1px solid var(--chrome-rule); border-radius: 16px; background: var(--shot-bg); box-shadow: 0 30px 80px -30px #000; }
+.window-bar { display: flex; align-items: center; gap: 8px; height: 40px; padding: 0 16px; border-bottom: 1px solid var(--chrome-rule); background: var(--chrome); }
+.window-bar i { width: 11px; height: 11px; border-radius: 50%; background: #3a3d43; }
+.window-bar span { flex: 1; max-width: 420px; margin-left: 14px; padding: 3px 14px; border-radius: 999px; background: #121316; color: var(--sub); font: 400 12px/1.6 var(--mono); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+/* browser section: code and the page that followed it */
+.remote-grid { display: grid; grid-template-columns: minmax(0, 7fr) minmax(0, 4fr); gap: 36px 56px; align-items: center; }
+.remote-grid h3 { font-size: clamp(19px, 1.8vw, 23px); }
+.remote-grid h3 + p { margin: 10px 0 26px; color: var(--ink-2); font-size: 15px; line-height: 1.95; }
+.code-head { display: flex; justify-content: space-between; gap: 12px; padding: 0 2px 8px; color: var(--sub); font: 600 13px/1.4 var(--label); letter-spacing: .12em; text-transform: uppercase; }
+.code { min-width: 0; overflow-x: auto; padding: 18px 20px; border: 1px solid var(--rule); border-radius: 12px; background: var(--code-bg); color: var(--code-ink); font: 400 13.5px/1.85 var(--mono); }
+.code .c { color: var(--code-sub); }
+.code .k { color: var(--code-key); }
+.marks { margin-top: 22px; display: grid; gap: 10px; color: var(--ink-2); font-size: 14px; line-height: 1.7; }
+.marks li { display: flex; gap: 12px; align-items: baseline; }
+.marks .no { transform: translateY(-1px); }
+.remote-shot { max-width: 400px; justify-self: end; width: 100%; }
+.ring { position: absolute; z-index: 2; width: 21%; aspect-ratio: 1; border: 3px solid var(--red-ink); border-radius: 50%; box-shadow: 0 0 0 4px #0008, 0 0 24px #ff5a4866; transform: translate(-50%, -50%); }
+.ring .no { position: absolute; top: -6px; right: -10px; }
+
+/* mixer section: one channel strip and one bus, named from top to bottom */
+.anatomy { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 40px 48px; }
+.part { display: grid; grid-template-columns: 112px minmax(0, 1fr); grid-template-rows: auto 1fr; gap: 14px 30px; }
+.part h3 { grid-column: 1 / -1; color: var(--gold-ink); font: 600 16px/1.3 var(--label); letter-spacing: .16em; text-transform: uppercase; }
+.column { position: relative; }
+.column img { width: 112px; border: 1px solid var(--shot-rule); border-radius: 10px; box-shadow: 0 20px 50px -24px #000; }
+.column .no { position: absolute; right: -12px; width: 22px; height: 22px; font-size: 13px; transform: translateY(-50%); box-shadow: 0 0 0 3px var(--ground); }
+.legend { position: relative; }
+.legend li { position: absolute; left: 0; right: 0; display: flex; align-items: center; gap: 10px; color: var(--ink-2); font-size: 14px; line-height: 1.45; transform: translateY(-50%); }
+.legend li::before { content: ""; flex: none; width: 14px; border-top: 1px dashed var(--rule-2); }
+.legend b { color: var(--ink); font-weight: 700; }
+.anatomy + .pair { margin-top: clamp(48px, 5vw, 72px); }
+.also { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0 40px; margin-top: clamp(40px, 4.5vw, 56px); border-top: 1px solid var(--rule); }
+.also li { display: flex; gap: 12px; padding: 16px 0; border-bottom: 1px solid var(--rule); color: var(--ink-2); font-size: 15px; line-height: 1.85; }
+.also li::before { content: ""; flex: none; width: 8px; height: 8px; margin-top: .7em; border-radius: 50%; background: var(--gold); box-shadow: 0 0 0 3px var(--gold-soft); }
+
+/* link section: three consoles and the wires between them */
+.map { display: grid; grid-template-columns: minmax(0, 1fr) minmax(120px, 160px) minmax(0, 1.15fr) minmax(120px, 160px) minmax(0, 1fr); align-items: center; }
+.node { min-width: 0; padding: 18px 18px 16px; border: 1px solid var(--rule-2); border-radius: 14px; background: linear-gradient(#1c1714, #131010); }
+.node.main { border-color: var(--gold); box-shadow: 0 0 0 4px var(--gold-soft), 0 24px 60px -30px #000; }
+.node-os { color: var(--sub); font: 600 13px/1.3 var(--label); letter-spacing: .12em; text-transform: uppercase; }
+.node-name { margin-top: 4px; font-size: 18px; font-weight: 900; line-height: 1.5; }
+.mini { display: flex; align-items: flex-end; justify-content: center; gap: 7px; height: 76px; margin-top: 12px; padding: 9px 10px; border: 1px solid #2a2622; border-radius: 8px; background: var(--shot-bg); }
+.mini i { flex: none; width: 6px; height: var(--h); border-radius: 2px; background: linear-gradient(to top, var(--meter) 0 60%, var(--gold) 84%, var(--red-ink)); box-shadow: 9px 0 0 -1px #2a2723; }
+.mini b { flex: none; width: 2px; height: 100%; margin-inline: 6px; background: #2d2925; }
+.chips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 12px; }
+.chips span { padding: 1px 9px; border: 1px solid var(--rule-2); border-radius: 999px; color: var(--ink-2); font-size: 12px; line-height: 1.7; }
+.wire { display: grid; gap: 18px; padding-inline: 8px; }
+.wire p { position: relative; padding-bottom: 8px; color: var(--ink-2); font-size: 12px; line-height: 1.4; text-align: center; }
+.wire p::after { content: ""; position: absolute; left: 4px; right: 4px; bottom: 0; height: 2px; background: var(--gold); }
+.wire p::before { content: ""; position: absolute; bottom: -4px; border-block: 5px solid transparent; }
+.wire .r::before { right: 0; border-left: 8px solid var(--gold); }
+.wire .l::before { left: 0; border-right: 8px solid var(--gold); }
+.wire .v { display: none; }
+.map + .cap { margin-bottom: clamp(40px, 4.5vw, 56px); }
+
+/* readouts */
+.readouts { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); border-block: 1px solid var(--rule); }
+.readout { display: grid; gap: 8px; align-content: start; padding: 24px 24px 22px 0; }
+.readout + .readout { padding-left: 24px; border-left: 1px solid var(--rule); }
+.readout .num { color: var(--gold-ink); font: 600 clamp(48px, 6.4vw, 80px)/.95 var(--label); letter-spacing: -.01em; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.readout .num small { margin-left: .14em; font-size: .4em; letter-spacing: .02em; }
+.readout p { color: var(--sub); font-size: 13px; line-height: 1.7; }
+
+/* cards: rules, not boxes */
+.cards { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); margin-top: clamp(36px, 4vw, 52px); border-top: 1px solid var(--rule); }
+.card { min-width: 0; padding: 26px 28px 28px 0; border-bottom: 1px solid var(--rule); }
+.cards > .card + .card { padding-left: 28px; border-left: 1px solid var(--rule); }
+.card p { margin-top: 8px; color: var(--ink-2); font-size: 15px; line-height: 1.95; }
+
+/* install */
+.split { display: grid; grid-template-columns: minmax(0, 6fr) minmax(0, 5fr); gap: 40px 56px; align-items: start; }
+.install-actions { margin-top: 28px; }
+.specs { border-top: 1px solid var(--rule); }
+.specs > div { display: grid; grid-template-columns: 9em minmax(0, 1fr); gap: 4px 20px; padding: 14px 0; border-bottom: 1px solid var(--rule); }
+.specs dt { color: var(--sub); font-size: 13px; font-weight: 700; line-height: 1.8; }
+.specs dd { font-size: 15px; line-height: 1.8; }
+
+/* closing */
+.footer { padding-block: 28px; border-top: 1px solid var(--rule); color: var(--sub); font-size: 13px; }
+.footer .frame { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px 24px; }
+.footer .brand { font-size: 21px; }
+.footer .brand svg { width: 22px; height: 22px; }
+.footer a.top { color: var(--ink-2); text-decoration: none; }
+
+/* widths */
+@media (max-width: 1080px) {
+  .map { grid-template-columns: minmax(0, 1fr) minmax(104px, 128px) minmax(0, 1.15fr) minmax(104px, 128px) minmax(0, 1fr); }
+}
+@media (max-width: 960px) {
+  .hero-copy, .sec-head, .split, .remote-grid { grid-template-columns: minmax(0, 1fr); }
+  .remote-shot { justify-self: center; }
+  .anatomy { grid-template-columns: minmax(0, 1fr); }
+  .cards { grid-template-columns: minmax(0, 1fr); }
+  .cards > .card, .cards > .card + .card { padding: 22px 0 24px; border-left: 0; }
+}
+@media (max-width: 760px) {
+  .nav .mid { display: none; }
+  .pair, .also { grid-template-columns: minmax(0, 1fr); }
+  .map { grid-template-columns: minmax(0, 1fr); max-width: 420px; margin-inline: auto; }
+  .wire { grid-auto-flow: column; justify-content: center; gap: 22px; padding: 14px 0; background: linear-gradient(var(--gold), var(--gold)) center / 2px 100% no-repeat; }
+  .wire p { padding: 4px 10px; border-radius: 999px; background: var(--ground-2); }
+  .wire p::before, .wire p::after { content: none; }
+  .wire .v { display: inline; margin-right: 6px; color: var(--gold-ink); font-weight: 700; }
+}
+@media (max-width: 640px) {
+  .readouts { grid-template-columns: minmax(0, 1fr); }
+  .readout, .readout + .readout { grid-template-columns: 7.6em minmax(0, 1fr); align-items: center; gap: 14px; padding: 16px 0; border-left: 0; }
+  .readout + .readout { border-top: 1px solid var(--rule); }
+  .readout .num { font-size: 40px; }
+  .part { grid-template-columns: 96px minmax(0, 1fr); gap: 14px 24px; }
+  .column img { width: 96px; }
+  .legend li { font-size: 13px; }
+  .specs > div { grid-template-columns: minmax(0, 1fr); gap: 2px; }
+}
+@media (max-width: 460px) {
+  .nav { gap: 2px 12px; }
+  .brand { font-size: 23px; }
+  .ring { border-width: 2px; }
+  .window-bar span { margin-left: 8px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+}
+</style>
+</head>
+<body>
+<a class="skip" href="#main">本文へ移動</a>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false">
+  <defs>
+    <symbol id="mark" viewBox="0 0 28 28">
+      <g fill="none" stroke-width="2.1" stroke-linecap="round">
+        <path d="M14 18 C10 13 6 11 3.2 10.6" style="stroke:var(--gold)"/>
+        <path d="M14 18 C11 12 8.4 7.6 6.4 5" style="stroke:var(--gold)"/>
+        <path d="M14 18 C13 12 12.2 6.4 11.4 2.8" style="stroke:var(--gold)"/>
+        <path d="M14 18 C15 12 15.8 6.4 16.6 2.8" style="stroke:var(--red)"/>
+        <path d="M14 18 C17 12 19.6 7.6 21.6 5" style="stroke:var(--red)"/>
+        <path d="M14 18 C18 13 22 11 24.8 10.6" style="stroke:var(--red)"/>
+      </g>
+      <g>
+        <circle cx="3.2" cy="10.6" r="1.9" style="fill:var(--gold)"/>
+        <circle cx="6.4" cy="5" r="1.9" style="fill:var(--gold)"/>
+        <circle cx="11.4" cy="2.8" r="1.9" style="fill:var(--gold)"/>
+        <circle cx="16.6" cy="2.8" r="1.9" style="fill:var(--red)"/>
+        <circle cx="21.6" cy="5" r="1.9" style="fill:var(--red)"/>
+        <circle cx="24.8" cy="10.6" r="1.9" style="fill:var(--red)"/>
+      </g>
+      <ellipse cx="14" cy="20.6" rx="6.4" ry="5.4" style="fill:var(--ink)"/>
+    </symbol>
+  </defs>
+</svg>
+
+<header class="topbar">
+  <div class="wrap">
+    <div class="frame">
+      <a class="brand" href="#top" aria-label="ghidorah、ページの先頭へ"><svg aria-hidden="true"><use href="#mark"/></svg>ghidorah</a>
+      <nav class="nav" aria-label="ページの中の移動">
+        <a class="mid" href="#browser">ブラウザの卓</a>
+        <a class="mid" href="#mixer">一通りの卓</a>
+        <a class="mid" href="#link">卓をつなぐ</a>
+        <a class="cta" href="#install">導入 <span aria-hidden="true">↓</span></a>
+      </nav>
+    </div>
+  </div>
+</header>
+
+<main id="main">
+
+<section class="section hero" id="top" aria-labelledby="hero-title">
+  <div class="wrap">
+    <div class="frame">
+      <div class="hero-copy">
+        <div>
+          <p class="label"><span class="led" aria-hidden="true"></span>ghidorah<span class="jp">PC の音を、一つの卓に</span></p>
+          <h1 id="hero-title" lang="en">Every channel,<br><span class="uw">anywhere.</span></h1>
+          <p class="h1-ja">マイクもスピーカーも、隣の部屋の PC も。<br>何十本の ch を、書いたとおりに結ぶ。</p>
+        </div>
+        <div>
+          <p class="lede">Windows の PC につないだマイクや audio interface の音と、network の向こうの PC の音を、一つの卓に集めて混ぜ、出口ごとに出し分ける。ghidorah は、そのための本格的な software mixer です。</p>
+          <div class="actions">
+            <a class="btn" href="#browser">詳しく見る <span aria-hidden="true">↓</span></a>
+            <a class="link" href="https://github.com/sync-dev-org/ghidorah">文書を読む <svg class="ext" viewBox="0 0 12 12" aria-hidden="true"><path d="M3 9 9 3M4.5 3H9v4.5" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg></a>
+          </div>
+        </div>
+      </div>
+
+      <figure class="hero-shot">
+        <div class="window">
+          <div class="window-bar" aria-hidden="true"><i></i><i></i><i></i><span>127.0.0.1:8000</span></div>
+          <img src="img/console.webp" width="2200" height="1885" fetchpriority="high" alt="ブラウザで開いた ghidorah の卓の画面。左に音を受ける四つの channel strip (CALL、GUEST、HOST、MUSIC)、中央に音をまとめる三つの bus (HALL、REC、STREAM)、右に三つの出口 (speakers、broadcast、recorder) が並び、各列に縦の fader と緑の meter がある。">
+        </div>
+        <figcaption class="cap"><b>Console</b><span>ブラウザで開いた ghidorah の卓。</span></figcaption>
+      </figure>
+    </div>
+  </div>
+</section>
+
+<section class="section band" id="browser" aria-labelledby="browser-title">
+  <div class="wrap">
+    <div class="frame">
+      <div class="sec-head">
+        <div>
+          <p class="label"><span class="led" aria-hidden="true"></span>Browser<span class="jp">ブラウザの卓</span></p>
+          <h2 id="browser-title" lang="en">A console in<br>your browser.</h2>
+          <p class="h-ja">ブラウザを開けば、そこが卓になる。</p>
+        </div>
+        <p class="lede">卓の画面は、ghidorah を動かしている PC でも、network の先の PC や tablet でも、ブラウザで開けます。縦に並ぶ列、縦の fader、その横の meter。物理の卓と同じ形で、そのまま手が動きます。</p>
+      </div>
+
+      <div class="remote-grid">
+        <div>
+          <h3>自分の program からも、同じ卓を。</h3>
+          <p>画面のつまみは、どれも program から REST で動かせ、変わった値は WebSocket で届きます。program が変えた値は、開いているどの画面にもすぐ映ります。</p>
+          <p class="code-head"><span>Python</span><span>別の PC から</span></p>
+<pre class="code"><code><span class="k">import</span> httpx
+
+mixer = <span class="c">"http://…"</span>  <span class="c"># 卓を動かしている PC</span>
+httpx.put(<span class="c">f"{mixer}/strips/MUSIC/fader_db"</span>, json={<span class="c">"value"</span>: -14})
+httpx.put(<span class="c">f"{mixer}/strips/GUEST/mute"</span>, json={<span class="c">"value"</span>: <span class="k">True</span>})</code></pre>
+          <ol class="marks">
+            <li><span class="no" aria-hidden="true">1</span><span>program が、ゲストのマイク (GUEST) を切った。</span></li>
+            <li><span class="no" aria-hidden="true">2</span><span>program が、音楽 (MUSIC) を下げた。</span></li>
+          </ol>
+        </div>
+        <figure class="remote-shot">
+          <div class="shot">
+            <img src="img/remote-change.webp" width="800" height="1489" loading="lazy" decoding="async" alt="卓の画面の、GUEST、HOST、MUSIC の三つの列の拡大。GUEST の MUTE が光り、MUSIC の fader が -14 まで下がっている。">
+            <span class="ring" style="left:17.7%; top:55.8%" aria-hidden="true"><span class="no">1</span></span>
+            <span class="ring" style="left:75%; top:91%" aria-hidden="true"><span class="no">2</span></span>
+          </div>
+          <figcaption class="cap"><b>Follow</b><span>別の PC の program が値を変えた直後の、開いていた卓の画面。</span></figcaption>
+        </figure>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="section" id="mixer" aria-labelledby="mixer-title">
+  <div class="wrap">
+    <div class="frame">
+      <div class="sec-head">
+        <div>
+          <p class="label"><span class="led" aria-hidden="true"></span>Mixer<span class="jp">一通りの卓</span></p>
+          <h2 id="mixer-title" lang="en">Everything<br>a mixer needs.</h2>
+          <p class="h-ja">insert 付きの channel strip と bus。卓に要る物が、一通りそろう。</p>
+        </div>
+        <p class="lede">入口の音を受ける channel strip にも、音をまとめる bus にも、EQ と dynamics を差せる insert の枠があります。send、PAN、mute、fader、meter まで、卓の部品を一通り持つ本物の mixer です。決まった主出力はなく、どの bus にも出口を割り当てられます。</p>
+      </div>
+
+      <div class="anatomy">
+        <figure class="part">
+          <h3>Channel strip</h3>
+          <div class="column">
+            <img src="img/strip-column.webp" width="240" height="1978" loading="lazy" decoding="async" alt="HOST の channel strip の列を、上から下まで写した画像。名前の表示、入口 stage の ch 0、input gain、EQ と Dynamics の insert、PAN、MUTE、fader と meter、HALL、REC、STREAM への send が並ぶ。">
+            <span class="no" style="top:4.3%" aria-hidden="true">1</span>
+            <span class="no" style="top:11.4%" aria-hidden="true">2</span>
+            <span class="no" style="top:17.1%" aria-hidden="true">3</span>
+            <span class="no" style="top:25%" aria-hidden="true">4</span>
+            <span class="no" style="top:33.6%" aria-hidden="true">5</span>
+            <span class="no" style="top:40.4%" aria-hidden="true">6</span>
+            <span class="no" style="top:65.7%" aria-hidden="true">7</span>
+            <span class="no" style="top:94.3%" aria-hidden="true">8</span>
+          </div>
+          <ol class="legend">
+            <li style="top:4.3%"><span><b>1</b> 名前と、音量と peak の表示</span></li>
+            <li style="top:11.4%"><span><b>2</b> 入口と ch の範囲</span></li>
+            <li style="top:17.1%"><span><b>3</b> input gain</span></li>
+            <li style="top:25%"><span><b>4</b> insert の枠。EQ と dynamics を好きな順に</span></li>
+            <li style="top:33.6%"><span><b>5</b> PAN</span></li>
+            <li style="top:40.4%"><span><b>6</b> mute</span></li>
+            <li style="top:65.7%"><span><b>7</b> fader と、peak と RMS の meter</span></li>
+            <li style="top:94.3%"><span><b>8</b> bus ごとの send の量</span></li>
+          </ol>
+        </figure>
+        <figure class="part">
+          <h3>Bus</h3>
+          <div class="column">
+            <img src="img/bus-column.webp" width="260" height="1975" loading="lazy" decoding="async" alt="HALL の bus の列を、上から下まで写した画像。名前の表示、send で受けている CALL、GUEST、HOST、MUSIC、insert の枠、MUTE、fader と meter、send を足す口と出口 speakers が並ぶ。">
+            <span class="no" style="top:4.3%" aria-hidden="true">1</span>
+            <span class="no" style="top:11.4%" aria-hidden="true">2</span>
+            <span class="no" style="top:22.7%" aria-hidden="true">3</span>
+            <span class="no" style="top:40.4%" aria-hidden="true">4</span>
+            <span class="no" style="top:65.7%" aria-hidden="true">5</span>
+            <span class="no" style="top:92.8%" aria-hidden="true">6</span>
+          </div>
+          <ol class="legend">
+            <li style="top:4.3%"><span><b>1</b> 名前と、音量と peak の表示</span></li>
+            <li style="top:11.4%"><span><b>2</b> send で受けている列</span></li>
+            <li style="top:22.7%"><span><b>3</b> insert の枠</span></li>
+            <li style="top:40.4%"><span><b>4</b> mute</span></li>
+            <li style="top:65.7%"><span><b>5</b> fader と、peak と RMS の meter</span></li>
+            <li style="top:92.8%"><span><b>6</b> 別の bus への send と、出口の割り当て</span></li>
+          </ol>
+        </figure>
+      </div>
+
+      <div class="pair">
+        <figure>
+          <div class="shot"><img src="img/eq.webp" width="1200" height="503" loading="lazy" decoding="async" alt="HOST の insert の EQ の画面。5 つの帯域が並び、100 Hz より下を切る帯域と、3200 Hz を 3 dB 持ち上げる帯域が入っている。"></div>
+          <figcaption class="cap"><b>EQ</b><span>insert の EQ。5 つの帯域を、一つずつ入れたり外したり。</span></figcaption>
+        </figure>
+        <figure>
+          <div class="shot"><img src="img/dynamics.webp" width="1200" height="540" loading="lazy" decoding="async" alt="HOST の insert の dynamics の画面。expander、compressor、makeup、limiter が並び、compressor と limiter が入っている。"></div>
+          <figcaption class="cap"><b>Dynamics</b><span>insert の dynamics。gate を含む expander、compressor、makeup、limiter。</span></figcaption>
+        </figure>
+      </div>
+
+      <ul class="also">
+        <li>send は channel strip から bus へ、bus から bus へ。ch の組ごとに量を決められる。</li>
+        <li>meter は channel strip、send、bus、出口の ch ごとに。出口では、範囲を超えた音の数も数える。</li>
+        <li>channel strip も bus も insert も send も、鳴らしたまま足して、並べ替えて、外せる。</li>
+        <li>卓の設定は、まるごと YAML の file に書き出せる。読み込めば、同じ卓に戻る。</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<section class="section band" id="link" aria-labelledby="link-title">
+  <div class="wrap">
+    <div class="frame">
+      <div class="sec-head">
+        <div>
+          <p class="label"><span class="led" aria-hidden="true"></span>Link<span class="jp">卓をつなぐ</span></p>
+          <h2 id="link-title" lang="en">Link every<br>console.</h2>
+          <p class="h-ja">別の PC の卓とも、network で音を送り合う。</p>
+        </div>
+        <p class="lede">ghidorah の卓どうしは、ghidorah protocol で network の音を送り合えます。会場の卓から配信の卓へ、別の部屋の卓へ、Linux で動く卓へ。sample rate が違っても、clock がずれていても、音は途切れず、遅れも積み上がりません。</p>
+      </div>
+
+      <figure>
+        <div class="map">
+          <div class="node">
+            <p class="node-os">Windows · 44.1 kHz</p>
+            <p class="node-name">配信の卓</p>
+            <div class="mini" aria-hidden="true"><i style="--h:58%"></i><i style="--h:66%"></i><b></b><i style="--h:72%"></i><i style="--h:70%"></i></div>
+            <div class="chips"><span>配信の PC へ</span></div>
+          </div>
+          <div class="wire">
+            <p class="l"><span class="v" aria-hidden="true">↑</span>会場のミックス 2 ch</p>
+            <p class="r"><span class="v" aria-hidden="true">↓</span>遠隔のゲスト 2 ch</p>
+          </div>
+          <div class="node main">
+            <p class="node-os">Windows · 48 kHz</p>
+            <p class="node-name">会場の卓</p>
+            <div class="mini" aria-hidden="true"><i style="--h:62%"></i><i style="--h:48%"></i><i style="--h:70%"></i><i style="--h:40%"></i><i style="--h:56%"></i><b></b><i style="--h:74%"></i><i style="--h:68%"></i><i style="--h:71%"></i></div>
+            <div class="chips"><span>audio interface 8 ch</span><span>スピーカー</span></div>
+          </div>
+          <div class="wire">
+            <p class="r"><span class="v" aria-hidden="true">↓</span>マイク 4 ch</p>
+            <p class="l"><span class="v" aria-hidden="true">↑</span>処理した声 1 ch</p>
+          </div>
+          <div class="node">
+            <p class="node-os">Linux · 16 kHz</p>
+            <p class="node-name">声を処理する卓</p>
+            <div class="mini" aria-hidden="true"><i style="--h:52%"></i><i style="--h:60%"></i><i style="--h:46%"></i><b></b><i style="--h:64%"></i></div>
+            <div class="chips"><span>自分の program</span></div>
+          </div>
+        </div>
+        <figcaption class="cap"><b>Link</b><span>三つの卓が、network の音を送り合う例。sample rate が違う卓どうしも、そのままつながる。</span></figcaption>
+      </figure>
+
+      <div class="readouts">
+        <div class="readout"><span class="num">8<small>時間</small></span><p>流しっぱなしでも、clock のずれで途切れない</p></div>
+        <div class="readout"><span class="num">±200<small>ppm</small></span><p>ここまでの卓どうし、機材どうしの clock のずれを、吸収し続ける</p></div>
+        <div class="readout"><span class="num">1.1<small>%</small></span><p>16 本の経路の clock のずれの吸収に使う、CPU 1 core の割合</p></div>
+      </div>
+
+      <div class="cards">
+        <article class="card">
+          <h3>rate の違う卓どうしも、そのまま。</h3>
+          <p>送る側は自分の sample rate のまま送り、受ける側が一度だけ変換します。48 kHz の卓と 16 kHz の卓も、同じ流れでつながります。</p>
+        </article>
+        <article class="card">
+          <h3>Linux でも、卓が動く。</h3>
+          <p>Linux の PC でも、network の音どうしを混ぜる卓を動かせます。</p>
+        </article>
+        <article class="card">
+          <h3>自分の program を、卓の途中に。</h3>
+          <p>bus の音を自分の program へ送り、処理して返した音を channel strip で受けられます。エコーの除去のような処理も、卓の外の program に任せられます。</p>
+        </article>
+      </div>
+      <p class="note">8 時間と ±200 ppm は、仮想の時刻で 8 時間分の音を流す test と、5,117 の条件で確かめています。</p>
+    </div>
+  </div>
+</section>
+
+<section class="section" id="install" aria-labelledby="install-title">
+  <div class="wrap">
+    <div class="frame">
+      <div class="sec-head">
+        <div>
+          <p class="label"><span class="led" aria-hidden="true"></span>Install<span class="jp">導入</span></p>
+          <h2 id="install-title" lang="en">Two wheels,<br>one command.</h2>
+          <p class="h-ja">wheel を二つ入れて、一行で卓が開く。</p>
+        </div>
+        <p class="lede">GitHub の Release から、使う OS の ghidorah の wheel と、卓の画面の wheel を取って入れるだけ。一行で起動すれば、ブラウザに卓が開きます。使い方は、公開用の repository の文書にまとめています。</p>
+      </div>
+
+      <div class="split">
+        <div>
+          <p class="code-head"><span>Python</span><span>Windows · Linux</span></p>
+<pre class="code"><code><span class="c"># GitHub の Release から、二つの wheel を取った後</span>
+python -m pip install GHIDORAH_WHEEL CONTROL_WHEEL
+
+<span class="c"># 卓を起動し、ブラウザで http://127.0.0.1:8000/ を開く</span>
+python -m ghidorah_control mixer.yaml</code></pre>
+          <p class="note">GHIDORAH_WHEEL は使う OS の <code>ghidorah-&lt;version&gt;-cp312-abi3-*.whl</code>、CONTROL_WHEEL は <code>ghidorah_control-&lt;version&gt;-py3-none-any.whl</code> の path に置き換えます。mixer.yaml は、卓の設定 file です。</p>
+          <div class="actions install-actions">
+            <a class="btn" href="https://github.com/sync-dev-org/ghidorah">文書を読む <svg class="ext" viewBox="0 0 12 12" aria-hidden="true"><path d="M3 9 9 3M4.5 3H9v4.5" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg></a>
+            <a class="link" href="https://github.com/sync-dev-org/ghidorah/releases">Releases <svg class="ext" viewBox="0 0 12 12" aria-hidden="true"><path d="M3 9 9 3M4.5 3H9v4.5" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg></a>
+          </div>
+        </div>
+        <dl class="specs">
+          <div><dt>Python</dt><dd>3.12 以上。wheel を pip で入れるだけ</dd></div>
+          <div><dt>卓の画面</dt><dd>ghidorah_control の wheel で、ブラウザと program から操作できる</dd></div>
+          <div><dt>C と C++</dt><dd>共有 library と header で、自分の program に組み込める</dd></div>
+          <div><dt>Windows の exe</dt><dd>設定 file を渡せば、そのまま鳴らせる</dd></div>
+          <div><dt>License</dt><dd>MIT License</dd></div>
+        </dl>
+      </div>
+    </div>
+  </div>
+</section>
+
+</main>
+
+<footer class="footer">
+  <div class="wrap">
+    <div class="frame">
+      <a class="brand" href="#top"><svg aria-hidden="true"><use href="#mark"/></svg>ghidorah</a>
+      <span>機材と network の音を、どこからどこへでも。 · MIT License</span>
+      <a class="top" href="#top">ページの先頭へ <span aria-hidden="true">↑</span></a>
+    </div>
+  </div>
+</footer>
+</body>
+</html>
